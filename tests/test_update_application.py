@@ -77,6 +77,27 @@ def test_update_by_fuzzy_role_text(monkeypatch, tmp_path):
     assert status == "interviewing"
 
 
+def test_exact_role_text_skips_fuzzy_disambiguation(monkeypatch, tmp_path):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    database_path = bootstrap_storage()
+    resume_file = tmp_path / "resume.pdf"
+    resume_file.write_text("resume", encoding="utf-8")
+    add_resume("base", str(resume_file), database_path)
+    add_application("hello 1", "base", database_path)
+    add_application("hello 2", "base", database_path)
+    hello3_id = add_application("hello 3", "base", database_path)
+
+    updated_id, status = update_application_status(
+        identifier="hello 3",
+        raw_status="g",
+        database_path=database_path,
+        force=True,
+        is_tty=True,
+    )
+    assert updated_id == hello3_id
+    assert status == "ghost"
+
+
 def test_fuzzy_no_match_raises_not_found(monkeypatch, tmp_path):
     database_path, _app_id = _seed(monkeypatch, tmp_path)
 

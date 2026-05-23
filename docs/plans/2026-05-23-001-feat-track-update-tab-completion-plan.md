@@ -1,13 +1,15 @@
 ---
 title: "feat: Tab completion for track update (Click shell_complete)"
 type: feat
-status: completed
+status: deferred
 date: 2026-05-23
 origin: docs/plans/prompt.md
 revised: 2026-05-23
 ---
 
 # feat: Tab completion for track update (Click shell_complete)
+
+> **Deferred in v2 MVP.** Subcommand completion ships via `install.sh`; `track update` ID/status completion is not implemented. Revisit when `edit` / `delete` land or completion is explicitly requested.
 
 ## Summary
 

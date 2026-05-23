@@ -1,3 +1,5 @@
+"""SQLite connection lifecycle and first-run schema bootstrap."""
+
 import sqlite3
 from pathlib import Path
 
@@ -22,6 +24,13 @@ def bootstrap_storage(database_path: Path | None = None) -> Path:
     ensure_track_dirs()
     path = database_path or db_path()
     path.parent.mkdir(parents=True, exist_ok=True)
-    with connection(path) as conn:
-        init_db(conn)
+    try:
+        with connection(path) as conn:
+            init_db(conn)
+    except sqlite3.DatabaseError as exc:
+        if "file is not a database" not in str(exc):
+            raise
+        path.unlink(missing_ok=True)
+        with connection(path) as conn:
+            init_db(conn)
     return path

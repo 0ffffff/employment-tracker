@@ -1,3 +1,5 @@
+"""Default on-disk locations under ~/.track/."""
+
 from pathlib import Path
 
 
@@ -14,5 +16,6 @@ def db_path() -> Path:
 
 
 def ensure_track_dirs() -> None:
-    track_home().mkdir(parents=True, exist_ok=True)
-    resumes_dir().mkdir(parents=True, exist_ok=True)
+    home = track_home()
+    home.mkdir(parents=True, exist_ok=True)
+    (home / "resumes").mkdir(parents=True, exist_ok=True)

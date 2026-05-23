@@ -1,3 +1,5 @@
+"""Fuzzy role_text matching for application identifiers (RapidFuzz WRatio)."""
+
 from rapidfuzz import fuzz, process
 
 
@@ -7,7 +9,17 @@ def candidate_matches(
     if not candidates:
         return []
 
-    lookup = {str(candidate["role_text"]): candidate for candidate in candidates}
+    stripped = query.strip()
+    exact = [
+        c
+        for c in candidates
+        if str(c["role_text"]).strip().casefold() == stripped.casefold()
+    ]
+    if len(exact) == 1:
+        c = exact[0]
+        return [{"id": int(c["id"]), "role_text": str(c["role_text"]), "score": 100.0}]
+
+    lookup = {str(c["role_text"]): c for c in candidates}
     results = process.extract(
         query,
         list(lookup.keys()),
@@ -15,10 +27,11 @@ def candidate_matches(
         score_cutoff=threshold,
         limit=None,
     )
-    matches = []
-    for role_text, score, _ in results:
-        candidate = lookup[role_text]
-        matches.append(
-            {"id": int(candidate["id"]), "role_text": role_text, "score": float(score)}
-        )
-    return matches
+    return [
+        {
+            "id": int(lookup[role_text]["id"]),
+            "role_text": role_text,
+            "score": float(score),
+        }
+        for role_text, score, _ in results
+    ]

@@ -1,3 +1,5 @@
+"""Interactive confirmation and fuzzy-match disambiguation."""
+
 from track.errors import CancelledError, ValidationError
 
 
@@ -9,7 +11,8 @@ def choose_candidate(
     output_fn("Multiple applications matched. Pick one:")
     for index, candidate in enumerate(candidates, start=1):
         output_fn(
-            f"{index}) #{candidate['id']} - {candidate['role_text']} (score={candidate['score']:.1f})"
+            f"{index}) #{candidate['id']} - {candidate['role_text']} "
+            f"(score={candidate['score']:.1f})"
         )
     response = input_fn("Enter selection number: ").strip()
     if not response.isdigit():
@@ -29,8 +32,8 @@ def confirm_status_change(
     output_fn=print,
 ) -> None:
     output_fn(
-        f"Update application #{application_id} ({role_text}) from '{old_status}' to '{new_status}'?"
+        f"Update application #{application_id} ({role_text}) "
+        f"from '{old_status}' to '{new_status}'?"
     )
-    response = input_fn("Confirm [y/N]: ").strip().lower()
-    if response not in {"y", "yes"}:
+    if input_fn("Confirm [y/N]: ").strip().lower() not in {"y", "yes"}:
         raise CancelledError("Update cancelled. No changes were made.")

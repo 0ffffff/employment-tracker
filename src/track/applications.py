@@ -1,24 +1,18 @@
+"""Application CRUD, status normalization, list filters, and fuzzy identifier resolution."""
+
 from datetime import date
 from pathlib import Path
-from typing import Any
 
 from track.confirm import choose_candidate, confirm_status_change
 from track.errors import NonInteractiveError, NotFoundError, ValidationError
 from track.fuzzy import candidate_matches
 from track.storage import connection
 
-STATUS_ALIASES = {
-    "reject": "reject",
-    "r": "reject",
-    "interviewing": "interviewing",
-    "i": "interviewing",
-    "offer": "offer",
-    "o": "offer",
-    "accepted": "accepted",
-    "a": "accepted",
-    "ghost": "ghost",
-    "g": "ghost",
-}
+_CANONICAL_STATUSES = ("reject", "interviewing", "offer", "accepted", "ghost")
+_STATUS_SHORT = ("r", "i", "o", "a", "g")
+STATUS_ALIASES = {s: s for s in _CANONICAL_STATUSES} | dict(
+    zip(_STATUS_SHORT, _CANONICAL_STATUSES, strict=True)
+)
 
 
 def normalize_role_text(text: str) -> str:
@@ -76,18 +70,7 @@ def list_application_rows(
     status_filter: str | None = None,
     applied_from: str | None = None,
     applied_to: str | None = None,
-) -> list[dict[str, Any]]:
-    status_value: str | None = None
-    if status_filter is not None:
-        status_value = normalize_status(status_filter)
-
-    lower_bound: str | None = None
-    upper_bound: str | None = None
-    if applied_from is not None:
-        lower_bound = _parse_applied_date("--applied-from", applied_from)
-    if applied_to is not None:
-        upper_bound = _parse_applied_date("--applied-to", applied_to)
-
+) -> list[dict]:
     query = """
         SELECT
             a.id,
@@ -99,41 +82,40 @@ def list_application_rows(
         JOIN resumes r ON r.id = a.resume_id
         WHERE 1 = 1
     """
-    params: list[str | int] = []
-    if status_value is not None:
+    params: list[str] = []
+    if status_filter is not None:
         query += " AND a.status = ?"
-        params.append(status_value)
-    if lower_bound is not None:
+        params.append(normalize_status(status_filter))
+    if applied_from is not None:
         query += " AND a.applied_date >= ?"
-        params.append(lower_bound)
-    if upper_bound is not None:
+        params.append(_parse_applied_date("--applied-from", applied_from))
+    if applied_to is not None:
         query += " AND a.applied_date <= ?"
-        params.append(upper_bound)
-
+        params.append(_parse_applied_date("--applied-to", applied_to))
     query += " ORDER BY a.applied_date DESC, a.id DESC"
 
     with connection(database_path) as conn:
         rows = conn.execute(query, params).fetchall()
 
-    applications: list[dict[str, Any]] = []
-    for row in rows:
-        applications.append(
-            {
-                "id": int(row["id"]),
-                "role_text": row["role_text"],
-                "status": row["status"],
-                "applied_date": row["applied_date"],
-                "resume_nickname": row["resume_nickname"],
-            }
-        )
-    return applications
+    return [
+        {
+            "id": int(row["id"]),
+            "role_text": row["role_text"],
+            "status": row["status"],
+            "applied_date": row["applied_date"],
+            "resume_nickname": row["resume_nickname"],
+        }
+        for row in rows
+    ]
 
 
 def normalize_status(status: str) -> str:
     canonical = STATUS_ALIASES.get(status.lower().strip())
     if not canonical:
-        valid = ", ".join(["reject|r", "interviewing|i", "offer|o", "accepted|a", "ghost|g"])
-        raise ValidationError(f"Unknown status '{status}'. Use one of: {valid}.")
+        raise ValidationError(
+            f"Unknown status '{status}'. "
+            "Use one of: reject|r, interviewing|i, offer|o, accepted|a, ghost|g."
+        )
     return canonical
 
 
@@ -192,11 +174,11 @@ def update_application_status(
             conn, identifier, is_tty, input_fn=input_fn, output_fn=output_fn
         )
         current = _get_application_by_id(conn, application_id)
+        if not force and not is_tty:
+            raise NonInteractiveError(
+                "Confirmation required for updates in non-interactive mode. Use -f."
+            )
         if not force:
-            if not is_tty:
-                raise NonInteractiveError(
-                    "Confirmation required for updates in non-interactive mode. Use -f."
-                )
             confirm_status_change(
                 application_id=application_id,
                 role_text=current["role_text"],
@@ -205,7 +187,6 @@ def update_application_status(
                 input_fn=input_fn,
                 output_fn=output_fn,
             )
-
         conn.execute(
             "UPDATE applications SET status = ? WHERE id = ?",
             (new_status, application_id),

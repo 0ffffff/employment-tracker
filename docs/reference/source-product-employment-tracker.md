@@ -2,7 +2,7 @@
 
 **Purpose:** This document captures the product built in the sibling repo [`employment-tracker`](file:///Users/williamli/Developer/employment-tracker) so agents working in **employment-tracker-2** can replicate behavior in a **barebones, scalable** form without re-reading the full source tree.
 
-**Last reviewed:** 2026-05-23 (against `employment-tracker` on branch `feat/cli-tab-completion`, package version `0.1.0`).
+**Last reviewed:** 2026-05-23 (v1 reference repo; v2 implementation in this repository).
 
 ---
 
@@ -256,9 +256,8 @@ employment-tracker-2 should treat the **current** command set and rules above as
 
 ### Safe to defer in v2 initial build
 
-- Shell tab completion (Click `shell_complete` on `track update`) — optional install; CLI must work without it.
+- Shell tab completion for `track update` arguments (Click `shell_complete`) — optional; CLI must work without it.
 - `TRACK_DEBUG_COMPLETION` and read-only URI completion paths.
-- Corrupt-DB auto-delete recovery (nice-to-have).
 - PyPI packaging polish — a minimal `pyproject.toml` + `uv run track` is enough to start.
 
 ### Scalability seams (recommended for v2 architecture)
@@ -274,26 +273,29 @@ Avoid premature abstractions (repository interfaces, plugin systems) until a sec
 
 ### Minimal v2 MVP checklist
 
-- [x] `bootstrap_storage` + schema
+- [x] `bootstrap_storage` + schema (+ corrupt `track.db` recovery)
 - [x] `add-resume`, `add`, `update` with tests
-- [x] `list` (human + `--json`)
+- [x] `list` (human + `--json`) and `list-resume`
 - [x] Shared fuzzy resolve + confirmation helpers
 - [ ] Then: `edit`, `delete`, `remove-resume`
-- [ ] Shell tab completion (deferred per `AGENTS.md` until core flows solid)
+- [ ] `track update` argument tab completion (deferred per `AGENTS.md` until core flows solid)
+- [x] Subcommand name tab completion via `install.sh` (Click `_TRACK_COMPLETE`)
 
-### v2 deltas (employment-tracker-2 v0 scaffold)
+### v2 deltas (employment-tracker-2)
 
-| Area | v2 v0 behavior |
+| Area | v2 behavior |
 |------|----------------|
 | Package layout | `src/track/` (hatch wheel) |
 | Dependencies | `click`, `rapidfuzz` required (no optional completion extra) |
 | CLI framework | Click (`@click.group` + subcommands); entry point `track.cli:main` |
 | `track update` identifier | Numeric ID or fuzzy `role_text` (threshold 85) |
 | Commands not yet ported | `edit`, `delete`, `remove-resume` |
-| Corrupt DB recovery | Not implemented |
-| Shell tab completion | **Deferred** — not wired in v2; restore from git history (`d924204`) or v1 when `edit`/`delete`/`remove-resume` are done |
+| Corrupt DB recovery | Reimplemented: non-SQLite `track.db` is deleted and re-initialized on bootstrap |
+| Shell tab completion | Subcommand names only (`install.sh`); **`track update` ID/status completion deferred** |
 | `track list` human output | Preview of 5 newest rows + `... N applications total`; `--all` for full table |
-| `list-resume` | v2-only command to inspect managed resume copies (`list-resume [--json] [--all]`) |
+| `list-resume` | Lists managed resume copies (`list-resume [--json] [--all]`) with same preview rule as `list` |
+| Code size | ~625 LOC across `src/track/*.py` (lean modules; shared list formatter in CLI) |
+| Install | `install.sh` — `uv tool install`, PATH, optional subcommand tab completion |
 
 ---
 

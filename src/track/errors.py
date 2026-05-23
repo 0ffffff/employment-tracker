@@ -1,18 +1,21 @@
+"""User-facing CLI errors (exit code 1 in main)."""
+
+
 class TrackError(Exception):
-    """Base class for expected CLI errors."""
+    pass
 
 
 class ValidationError(TrackError):
-    """Raised when user input is invalid."""
+    pass
 
 
 class NotFoundError(TrackError):
-    """Raised when required data cannot be found."""
+    pass
 
 
 class NonInteractiveError(TrackError):
-    """Raised when interactive flow is required but unavailable."""
+    pass
 
 
 class CancelledError(TrackError):
-    """Raised when user cancels an operation."""
+    pass

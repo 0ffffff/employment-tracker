@@ -4,21 +4,23 @@ Greenfield rewrite of the **Track CLI** internship job-application tracker. Beha
 
 ## Required reading before implementing features
 
-1. **[Source product reference](docs/reference/source-product-employment-tracker.md)** — full command surface, data model, business rules, error/confirmation behavior, out-of-scope items, and MVP checklist for this repo.
+1. **[Source product reference](docs/reference/source-product-employment-tracker.md)** — command surface, data model, business rules, error/confirmation behavior, MVP checklist, and **v2 deltas**.
 2. Original repo (read-only reference): `/Users/williamli/Developer/employment-tracker`
 
 ## Project goal
 
-Replicate the source product as a **barebones** codebase that stays easy to extend (clear CLI / domain / storage layers, testable `database_path` injection, no premature frameworks). Defer analytics, cloud sync, and tab completion until core flows are solid unless explicitly requested.
+Replicate the source product as a **barebones** codebase: clear CLI / domain / storage layers, `database_path` injection in tests, no premature frameworks. Defer analytics, cloud sync, and **`track update` argument tab completion** until core flows are solid.
+
+**Shipped in v2:** `add`, `add-resume`, `update`, `list`, `list-resume`; corrupt `track.db` recovery; subcommand-name completion via `install.sh` (Click `_TRACK_COMPLETE`).
 
 ## Python tooling
 
-When this repo has a `pyproject.toml`, use **uv** for all Python workflows (`uv sync`, `uv run pytest`, `uv run track`, etc.), matching the source repo’s `AGENTS.md` policy.
+Use **uv** for all Python workflows (`uv sync`, `uv run pytest`, `uv run track`, etc.).
 
 ## Commits
 
 Create atomic commits per logical change; do not commit unless the user asks.
 
-## Updating this doc
+## Updating docs
 
-When replication diverges from v1 or new commands ship here, update `docs/reference/source-product-employment-tracker.md` (add a “v2 deltas” section) so future agents see one source of truth.
+When replication diverges from v1 or new commands ship, update `docs/reference/source-product-employment-tracker.md` (**v2 deltas** section).

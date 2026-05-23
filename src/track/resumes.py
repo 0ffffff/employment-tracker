@@ -1,8 +1,9 @@
+"""Resume registration (copy into managed storage) and listing."""
+
 import shutil
 import sqlite3
 import tempfile
 from pathlib import Path
-from typing import Any
 
 from track.errors import NotFoundError, ValidationError
 from track.paths import resumes_dir
@@ -14,17 +15,12 @@ def _latest_resume_id(conn) -> int | None:
     return int(row["id"]) if row else None
 
 
-def add_resume(
-    nickname: str,
-    source_path: str,
-    database_path: Path,
-) -> int:
+def add_resume(nickname: str, source_path: str, database_path: Path) -> int:
     source = Path(source_path).expanduser()
     if not source.exists() or not source.is_file():
         raise NotFoundError(
             f"Resume file '{source_path}' was not found. Provide a readable local file."
         )
-
     if not nickname.strip():
         raise ValidationError("Resume nickname cannot be empty.")
 
@@ -36,7 +32,6 @@ def add_resume(
         temp_path = Path(tmp_file.name)
     shutil.copy2(source, temp_path)
 
-    resume_id: int | None = None
     previous_latest: int | None = None
     try:
         with connection(database_path) as conn:
@@ -59,10 +54,6 @@ def add_resume(
     except Exception:
         temp_path.unlink(missing_ok=True)
         raise
-
-    if resume_id is None:
-        temp_path.unlink(missing_ok=True)
-        raise ValidationError("Unable to register resume. Please try again.")
 
     final_path = resumes_directory / f"{resume_id}{extension}"
     try:
@@ -88,7 +79,7 @@ def add_resume(
     return resume_id
 
 
-def list_resume_rows(database_path: Path) -> list[dict[str, Any]]:
+def list_resume_rows(database_path: Path) -> list[dict]:
     with connection(database_path) as conn:
         rows = conn.execute(
             """
@@ -98,15 +89,13 @@ def list_resume_rows(database_path: Path) -> list[dict[str, Any]]:
             """
         ).fetchall()
 
-    resumes: list[dict[str, Any]] = []
-    for row in rows:
-        resumes.append(
-            {
-                "id": int(row["id"]),
-                "nickname": row["nickname"],
-                "managed_path": row["managed_path"],
-                "is_latest": bool(row["is_latest"]),
-                "created_at": row["created_at"],
-            }
-        )
-    return resumes
+    return [
+        {
+            "id": int(row["id"]),
+            "nickname": row["nickname"],
+            "managed_path": row["managed_path"],
+            "is_latest": bool(row["is_latest"]),
+            "created_at": row["created_at"],
+        }
+        for row in rows
+    ]
