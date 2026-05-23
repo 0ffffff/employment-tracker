@@ -1,0 +1,27 @@
+import sqlite3
+from pathlib import Path
+
+from track.paths import db_path, ensure_track_dirs
+
+
+def connection(database_path: Path | None = None) -> sqlite3.Connection:
+    path = database_path or db_path()
+    conn = sqlite3.connect(path)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON;")
+    return conn
+
+
+def init_db(conn: sqlite3.Connection) -> None:
+    schema_path = Path(__file__).with_name("schema.sql")
+    conn.executescript(schema_path.read_text(encoding="utf-8"))
+    conn.commit()
+
+
+def bootstrap_storage(database_path: Path | None = None) -> Path:
+    ensure_track_dirs()
+    path = database_path or db_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with connection(path) as conn:
+        init_db(conn)
+    return path

@@ -1,0 +1,28 @@
+[project]
+name = "employment-tracker"
+version = "0.1.0"
+description = "Local-first CLI for tracking internship job applications"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "click>=8.1.0",
+    "rapidfuzz>=3.14.0",
+]
+
+[project.scripts]
+track = "track.cli:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/track"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
