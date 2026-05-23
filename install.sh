@@ -19,6 +19,7 @@ COMPLETION_BEGIN="# >>> track shell completion (install.sh) >>>"
 COMPLETION_END="# <<< track shell completion (install.sh) <<<"
 INSTALL_BRANCH="${TRACK_INSTALL_BRANCH:-main}"
 DEFAULT_INSTALL_REPO="https://github.com/0ffffff/employment-tracker.git"
+TRACK_INSTALL_REPO="https://github.com/0ffffff/employment-tracker.git"
 
 log() { printf '%s\n' "$*"; }
 warn() { printf 'warning: %s\n' "$*" >&2; }
@@ -141,7 +142,6 @@ main() {
     source_dir="$repo_root"
     log "Using checkout at ${source_dir}"
   else
-    TRACK_INSTALL_REPO="${TRACK_INSTALL_REPO:-$DEFAULT_INSTALL_REPO}"
     WORK_DIR="$(mktemp -d 2>/dev/null || mktemp -d -t track-install)"
     trap cleanup EXIT
     log "Cloning ${TRACK_INSTALL_REPO} (branch ${INSTALL_BRANCH})"
