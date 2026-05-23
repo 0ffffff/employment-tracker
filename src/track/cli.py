@@ -45,7 +45,10 @@ def add_cmd(company_and_position: str, resume_ref: str | None) -> None:
 
 @cli.command("add-resume")
 @click.argument("resume_reference_name")
-@click.argument("path_to_resume")
+@click.argument(
+    "path_to_resume",
+    type=click.Path(exists=False, dir_okay=False),
+)
 def add_resume_cmd(resume_reference_name: str, path_to_resume: str) -> None:
     database_path = bootstrap_storage()
     resume_id = add_resume(

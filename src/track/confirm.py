@@ -8,10 +8,10 @@ def choose_candidate(
     input_fn=input,
     output_fn=print,
 ) -> int:
-    output_fn("Multiple applications matched. Pick one:")
+    output_fn("Multiple applications matched. Pick one (option number, not ID):")
     for index, candidate in enumerate(candidates, start=1):
         output_fn(
-            f"{index}) #{candidate['id']} - {candidate['role_text']} "
+            f"{index}) ID#{candidate['id']} - {candidate['role_text']} "
             f"(score={candidate['score']:.1f})"
         )
     response = input_fn("Enter selection number: ").strip()

@@ -4,13 +4,11 @@
 # Usage (from a clone):
 #   ./install.sh
 #
-# Usage (pipe install — set the git URL of this repository):
-#   curl -fsSL https://raw.githubusercontent.com/OWNER/employment-tracker-2/main/install.sh | bash
-#   # or:
-#   TRACK_INSTALL_REPO=https://github.com/OWNER/employment-tracker-2.git bash -c "$(curl -fsSL .../install.sh)"
+# Usage (pipe install):
+#   curl -fsSL https://0ffffff.github.io/install.sh | bash
 #
 # Environment:
-#   TRACK_INSTALL_REPO   Git URL to clone when not run from a checkout (required for pipe install)
+#   TRACK_INSTALL_REPO   Git URL to clone for pipe install (default: 0ffffff/employment-tracker)
 #   TRACK_INSTALL_BRANCH Branch to clone (default: main)
 #   TRACK_INSTALL_SKIP_COMPLETION  Set to 1 to skip shell rc changes
 
@@ -20,6 +18,7 @@ TOOL_NAME="employment-tracker"
 COMPLETION_BEGIN="# >>> track shell completion (install.sh) >>>"
 COMPLETION_END="# <<< track shell completion (install.sh) <<<"
 INSTALL_BRANCH="${TRACK_INSTALL_BRANCH:-main}"
+DEFAULT_INSTALL_REPO="https://github.com/0ffffff/employment-tracker.git"
 
 log() { printf '%s\n' "$*"; }
 warn() { printf 'warning: %s\n' "$*" >&2; }
@@ -69,7 +68,8 @@ ensure_path() {
 install_tool() {
   local source_dir="$1"
   log "Installing ${TOOL_NAME} from ${source_dir}"
-  uv tool install --force "$source_dir"
+  # --reinstall rebuilds the wheel; --force alone can leave a stale 0.1.0 install cached.
+  uv tool install --force --reinstall "$source_dir"
 }
 
 verify_track() {
@@ -141,7 +141,7 @@ main() {
     source_dir="$repo_root"
     log "Using checkout at ${source_dir}"
   else
-    : "${TRACK_INSTALL_REPO:?Set TRACK_INSTALL_REPO to this repo git URL for pipe install, or run install.sh from a clone}"
+    TRACK_INSTALL_REPO="${TRACK_INSTALL_REPO:-$DEFAULT_INSTALL_REPO}"
     WORK_DIR="$(mktemp -d 2>/dev/null || mktemp -d -t track-install)"
     trap cleanup EXIT
     log "Cloning ${TRACK_INSTALL_REPO} (branch ${INSTALL_BRANCH})"

@@ -280,6 +280,7 @@ Avoid premature abstractions (repository interfaces, plugin systems) until a sec
 - [ ] Then: `edit`, `delete`, `remove-resume`
 - [ ] `track update` argument tab completion (deferred per `AGENTS.md` until core flows solid)
 - [x] Subcommand name tab completion via `install.sh` (Click `_TRACK_COMPLETE`)
+- [x] `add-resume` file-path tab completion via `click.Path`
 
 ### v2 deltas (employment-tracker-2)
 
@@ -291,11 +292,11 @@ Avoid premature abstractions (repository interfaces, plugin systems) until a sec
 | `track update` identifier | Numeric ID or fuzzy `role_text` (threshold 85) |
 | Commands not yet ported | `edit`, `delete`, `remove-resume` |
 | Corrupt DB recovery | Reimplemented: non-SQLite `track.db` is deleted and re-initialized on bootstrap |
-| Shell tab completion | Subcommand names only (`install.sh`); **`track update` ID/status completion deferred** |
+| Shell tab completion | Subcommand names (`install.sh`); `add-resume` path via `click.Path`; **`track update` ID/status deferred** |
 | `track list` human output | Preview of 5 newest rows + `... N applications total`; `--all` for full table |
 | `list-resume` | Lists managed resume copies (`list-resume [--json] [--all]`) with same preview rule as `list` |
 | Code size | ~625 LOC across `src/track/*.py` (lean modules; shared list formatter in CLI) |
-| Install | `install.sh` — `uv tool install`, PATH, optional subcommand tab completion |
+| Install | [0ffffff.github.io/install.sh](https://0ffffff.github.io/install.sh) one-liner (GitHub Pages); clones `0ffffff/employment-tracker`, `uv tool install`, PATH, optional subcommand tab completion |
 
 ---
 

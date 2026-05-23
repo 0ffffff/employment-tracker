@@ -11,7 +11,7 @@ Greenfield rewrite of the **Track CLI** internship job-application tracker. Beha
 
 Replicate the source product as a **barebones** codebase: clear CLI / domain / storage layers, `database_path` injection in tests, no premature frameworks. Defer analytics, cloud sync, and **`track update` argument tab completion** until core flows are solid.
 
-**Shipped in v2:** `add`, `add-resume`, `update`, `list`, `list-resume`; corrupt `track.db` recovery; subcommand-name completion via `install.sh` (Click `_TRACK_COMPLETE`).
+**Shipped in v2:** `add`, `add-resume`, `update`, `list`, `list-resume`; corrupt `track.db` recovery; subcommand-name completion via `install.sh` (Click `_TRACK_COMPLETE`); `add-resume` file-path completion via `click.Path`.
 
 ## Python tooling
 
