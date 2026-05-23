@@ -274,11 +274,12 @@ Avoid premature abstractions (repository interfaces, plugin systems) until a sec
 
 ### Minimal v2 MVP checklist
 
-- [ ] `bootstrap_storage` + schema
-- [ ] `add-resume`, `add`, `update` with tests
-- [ ] `list` (human + `--json`)
-- [ ] Shared fuzzy resolve + confirmation helpers
+- [x] `bootstrap_storage` + schema
+- [x] `add-resume`, `add`, `update` with tests
+- [x] `list` (human + `--json`)
+- [x] Shared fuzzy resolve + confirmation helpers
 - [ ] Then: `edit`, `delete`, `remove-resume`
+- [ ] Shell tab completion (deferred per `AGENTS.md` until core flows solid)
 
 ### v2 deltas (employment-tracker-2 v0 scaffold)
 
@@ -290,7 +291,7 @@ Avoid premature abstractions (repository interfaces, plugin systems) until a sec
 | `track update` identifier | Numeric ID or fuzzy `role_text` (threshold 85) |
 | Commands not yet ported | `edit`, `delete`, `remove-resume` |
 | Corrupt DB recovery | Not implemented |
-| Shell tab completion | Click `shell_complete` on `track update` identifier + status; install via `_TRACK_COMPLETE={bash,zsh}_source track` in shell rc |
+| Shell tab completion | **Deferred** — not wired in v2; restore from git history (`d924204`) or v1 when `edit`/`delete`/`remove-resume` are done |
 | `track list` human output | Preview of 5 newest rows + `... N applications total`; `--all` for full table |
 | `list-resume` | v2-only command to inspect managed resume copies (`list-resume [--json] [--all]`) |
 

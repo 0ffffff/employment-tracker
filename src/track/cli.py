@@ -2,9 +2,6 @@ import json
 import sys
 
 import click
-from click.shell_completion import CompletionItem
-
-import track.shell_completion  # noqa: F401 — registers TrackBashComplete / TrackZshComplete
 
 from track.applications import (
     add_application,
@@ -17,42 +14,6 @@ from track.storage import bootstrap_storage
 
 # Default human list preview length (matches pandas DataFrame.head() default).
 LIST_HEAD_ROWS = 5
-
-
-def complete_application_identifier(
-    ctx: click.Context,
-    param: click.Parameter,
-    incomplete: str,
-) -> list[CompletionItem]:
-    try:
-        from track.completion_data import application_completion_candidates
-        from track.paths import db_path
-
-        path = db_path()
-        if not path.is_file():
-            return []
-        return [
-            CompletionItem(candidate)
-            for candidate in application_completion_candidates(path, incomplete)
-        ]
-    except Exception:
-        return []
-
-
-def complete_status_token(
-    ctx: click.Context,
-    param: click.Parameter,
-    incomplete: str,
-) -> list[CompletionItem]:
-    try:
-        from track.completion_data import status_completion_candidates
-
-        return [
-            CompletionItem(candidate)
-            for candidate in status_completion_candidates(incomplete)
-        ]
-    except Exception:
-        return []
 
 
 @click.group(
@@ -102,8 +63,8 @@ def add_resume_cmd(resume_reference_name: str, path_to_resume: str) -> None:
 
 
 @cli.command("update")
-@click.argument("identifier", shell_complete=complete_application_identifier)
-@click.argument("status_or_option", shell_complete=complete_status_token)
+@click.argument("identifier")
+@click.argument("status_or_option")
 @click.option("-f", "--force", is_flag=True, help="Bypass confirmation prompt.")
 def update_cmd(identifier: str, status_or_option: str, force: bool) -> None:
     """Update application status by ID or fuzzy role text match."""
