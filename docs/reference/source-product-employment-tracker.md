@@ -289,6 +289,7 @@ Avoid premature abstractions (repository interfaces, plugin systems) until a sec
 | Package layout | `src/track/` (hatch wheel) |
 | Dependencies | `click`, `rapidfuzz` required (no optional completion extra) |
 | CLI framework | Click (`@click.group` + subcommands); entry point `track.cli:main` |
+| Subcommand aliases | `ls`→`list`, `a`→`add`, `ar`→`add-resume`, `lr`→`list-resume`, `u`→`update`; hidden from `--help` and tab completion |
 | `track update` identifier | Numeric ID or fuzzy `role_text` (threshold 85) |
 | Commands not yet ported | `edit`, `delete`, `remove-resume` |
 | Corrupt DB recovery | Reimplemented: non-SQLite `track.db` is deleted and re-initialized on bootstrap |

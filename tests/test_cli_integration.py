@@ -32,6 +32,29 @@ def test_cli_recognizes_core_subcommands(monkeypatch, tmp_path):
     assert resume_payload["resumes"][0]["nickname"] == "default"
 
 
+def test_cli_subcommand_aliases(monkeypatch, tmp_path):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    runner = CliRunner(env={"HOME": str(tmp_path)})
+    resume = tmp_path / "resume.pdf"
+    resume.write_text("pdf-bytes", encoding="utf-8")
+
+    assert runner.invoke(cli, ["ar", "default", str(resume)]).exit_code == 0
+    assert (
+        runner.invoke(cli, ["a", "Acme SWE Intern", "-r", "default"]).exit_code == 0
+    )
+    list_result = runner.invoke(cli, ["ls", "--json"])
+    assert list_result.exit_code == 0
+    assert json.loads(list_result.output.strip())["applications"]
+    list_resume_result = runner.invoke(cli, ["lr", "--json"])
+    assert list_resume_result.exit_code == 0
+    assert json.loads(list_resume_result.output.strip())["resumes"]
+    update_result = runner.invoke(cli, ["u", "1", "i", "-f"])
+    assert update_result.exit_code == 0
+    assert "interviewing" in update_result.output
+
+    assert runner.invoke(cli, ["xyz"]).exit_code != 0
+
+
 def test_main_without_subcommand_returns_non_zero():
     assert main([]) == 1
 

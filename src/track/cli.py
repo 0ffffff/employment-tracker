@@ -17,8 +17,22 @@ from track.storage import bootstrap_storage
 
 LIST_HEAD_ROWS = 5
 
+_SUBCOMMAND_ALIASES: dict[str, str] = {
+    "ls": "list",
+    "a": "add",
+    "ar": "add-resume",
+    "lr": "list-resume",
+    "u": "update",
+}
+
+
+class AliasedGroup(click.Group):
+    def get_command(self, ctx: click.Context, cmd_name: str) -> click.Command | None:
+        return super().get_command(ctx, _SUBCOMMAND_ALIASES.get(cmd_name, cmd_name))
+
 
 @click.group(
+    cls=AliasedGroup,
     invoke_without_command=True,
     context_settings={"help_option_names": ["-h", "--help"]},
 )

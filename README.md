@@ -34,6 +34,16 @@ track list-resume --json --all
 
 Statuses that are currently available: `ghost`/`g`, `reject`/`r`, `interviewing`/`i`, `offer`/`o`, `accepted`/`a`
 
+You can also use subcommand aliases:
+
+| Alias | Command |
+|-------|---------|
+| `a` | `add` |
+| `ar` | `add-resume` |
+| `ls` | `list` |
+| `lr` | `list-resume` |
+| `u` | `update` |
+
 ## Updates
 
 I'll probably be adding functionality to delete resumes/applications and other QoL changes soon. Also on the list is data analytics, so being able to see how jobless you are :>

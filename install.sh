@@ -18,7 +18,6 @@ TOOL_NAME="employment-tracker"
 COMPLETION_BEGIN="# >>> track shell completion (install.sh) >>>"
 COMPLETION_END="# <<< track shell completion (install.sh) <<<"
 INSTALL_BRANCH="${TRACK_INSTALL_BRANCH:-main}"
-DEFAULT_INSTALL_REPO="https://github.com/0ffffff/employment-tracker.git"
 TRACK_INSTALL_REPO="https://github.com/0ffffff/employment-tracker.git"
 
 log() { printf '%s\n' "$*"; }
