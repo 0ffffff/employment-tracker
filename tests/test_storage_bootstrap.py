@@ -19,5 +19,11 @@ def test_bootstrap_recovers_from_corrupted_file(monkeypatch, tmp_path):
 
     bootstrap_storage()
 
+    # A fresh, valid SQLite database should be created at the original path.
     assert db.exists()
     assert db.read_bytes()[:16] == b"SQLite format 3\x00"
+
+    # The corrupted file should be preserved under a backup name.
+    backups = list(track_home().glob("track.db.corrupt*"))
+    assert backups, "expected a backup of the corrupted database file"
+    assert backups[0].read_text(encoding="utf-8") == "NOT A DATABASE"

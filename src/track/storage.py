@@ -30,7 +30,14 @@ def bootstrap_storage(database_path: Path | None = None) -> Path:
     except sqlite3.DatabaseError as exc:
         if "file is not a database" not in str(exc):
             raise
-        path.unlink(missing_ok=True)
+        # Preserve the corrupted database file for potential manual recovery.
+        backup = path.with_suffix(path.suffix + ".corrupt")
+        counter = 1
+        while backup.exists():
+            backup = path.with_suffix(path.suffix + f".corrupt.{counter}")
+            counter += 1
+        if path.exists():
+            path.replace(backup)
         with connection(path) as conn:
             init_db(conn)
     return path

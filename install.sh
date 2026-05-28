@@ -72,9 +72,25 @@ install_tool() {
   uv tool install --force --reinstall "$source_dir"
 }
 
+corrupt_backup_count() {
+  { compgen -G "${HOME}/.track/track.db.corrupt*" || true; } | wc -l | tr -d ' '
+}
+
 verify_track() {
+  local corrupt_count_before corrupt_count_after
+
   command -v track >/dev/null 2>&1 || die "'track' not on PATH after install; open a new shell or run: export PATH=\"\${HOME}/.local/bin:\${PATH}\""
   track --help >/dev/null 2>&1 || die "'track --help' failed"
+  corrupt_count_before="$(corrupt_backup_count)"
+
+  # Trigger storage bootstrap so corruption warnings are surfaced during install.
+  track list --json >/dev/null || die "'track list --json' failed"
+  corrupt_count_after="$(corrupt_backup_count)"
+
+  if [[ "$corrupt_count_after" -gt "$corrupt_count_before" ]]; then
+    warn "Detected a corrupted existing database. It was backed up to ~/.track/track.db.corrupt* and a fresh database was created."
+  fi
+
   log "Installed: $(command -v track)"
 }
 
