@@ -9,7 +9,7 @@ If you don't have `uv` installed, this script will also install that for you.
 curl -fsSL https://0ffffff.github.io/install.sh | bash
 ```
 
-Your data lives locally in `~/.track/`, created automatically from installation.
+Your data lives locally in `~/.track/`, created automatically from installation. If there's a new update, just rerun the install script; your current data will be saved.
 
 ## Usage
 
@@ -17,13 +17,21 @@ Your data lives locally in `~/.track/`, created automatically from installation.
 # Resumes
 track add-resume "2027-default" ./resume.pdf
 # -> Registered resume #1 as latest.
+track add-resume "default-2" ./resume-2.pdf
+# -> Registered resume #2 as latest.
+track set-latest-resume "2027-default"
+# Switches default resume back to "2027-default"
 
-# Applications (latest resume if -r omitted; status ghost; applied_date today)
+# Applications
+# Attaches latest resume with default status of "ghost" (no reply)
 track add "Acme SWE Intern"
+# Associate a specific registered resume to this application
 track add "Globex Data Intern" -r "2027-default"
 
-# Status update (ID or fuzzy role_text >=85; confirm unless -f)
+# Status updates
+# Update via application ID
 track update 1 interviewing
+# or by name (supports fuzzy matching)
 track update "Acme SWE Intern" i -f
 
 # Lists (human: 5-row preview; --all for full table; JSON: full set)
@@ -42,8 +50,13 @@ You can also use subcommand aliases:
 | `ar` | `add-resume` |
 | `ls` | `list` |
 | `lr` | `list-resume` |
+| `slr` | `set-latest-resume` |
 | `u` | `update` |
 
 ## Updates
 
-I'll probably be adding functionality to delete resumes/applications and other QoL changes soon. Also on the list is data analytics, so being able to see how jobless you are :>
+- [ ] delete resume functionality
+- [ ] delete applications functionality
+- [ ] various QoL improvements
+- [ ] data analytics (e.g. view your application/job stats)
+- [ ] export data to csv, json, etc.
