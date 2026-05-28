@@ -48,6 +48,9 @@ def test_cli_subcommand_aliases(monkeypatch, tmp_path):
     list_resume_result = runner.invoke(cli, ["lr", "--json"])
     assert list_resume_result.exit_code == 0
     assert json.loads(list_resume_result.output.strip())["resumes"]
+    slr_result = runner.invoke(cli, ["slr", "default"])
+    assert slr_result.exit_code == 0
+    assert "Set resume #1 as latest." in slr_result.output
     update_result = runner.invoke(cli, ["u", "1", "i", "-f"])
     assert update_result.exit_code == 0
     assert "interviewing" in update_result.output
@@ -92,3 +95,34 @@ def test_end_to_end_add_resume_add_list_update(monkeypatch, tmp_path):
     update_result = runner.invoke(cli, ["update", "1", "i", "-f"])
     assert update_result.exit_code == 0
     assert "interviewing" in update_result.output
+
+
+def test_set_latest_resume_switches_default_resume_for_add(monkeypatch, tmp_path):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    runner = CliRunner(env={"HOME": str(tmp_path)})
+    resume = tmp_path / "resume.pdf"
+    resume.write_text("pdf-bytes", encoding="utf-8")
+
+    assert runner.invoke(cli, ["add-resume", "first", str(resume)]).exit_code == 0
+    assert runner.invoke(cli, ["add-resume", "second", str(resume)]).exit_code == 0
+    set_latest_result = runner.invoke(cli, ["set-latest-resume", "first"])
+    assert set_latest_result.exit_code == 0
+    assert "Set resume #1 as latest." in set_latest_result.output
+
+    assert runner.invoke(cli, ["add", "Acme SWE Intern"]).exit_code == 0
+    list_result = runner.invoke(cli, ["list", "--json"])
+    assert list_result.exit_code == 0
+    payload = json.loads(list_result.output.strip())
+    assert payload["applications"][0]["resume_nickname"] == "first"
+
+
+def test_set_latest_resume_unknown_name_returns_error(monkeypatch, tmp_path):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    runner = CliRunner(env={"HOME": str(tmp_path)})
+    resume = tmp_path / "resume.pdf"
+    resume.write_text("pdf-bytes", encoding="utf-8")
+    assert runner.invoke(cli, ["add-resume", "default", str(resume)]).exit_code == 0
+
+    result = runner.invoke(cli, ["set-latest-resume", "missing"])
+    assert result.exit_code == 1
+    assert str(result.exception) == "Resume reference 'missing' was not found."

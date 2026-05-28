@@ -2,7 +2,7 @@ import pytest
 
 from track.applications import add_application
 from track.errors import ValidationError
-from track.resumes import add_resume
+from track.resumes import add_resume, set_latest_resume
 from track.storage import bootstrap_storage, connection
 
 
@@ -55,3 +55,28 @@ def test_add_normalizes_spacing(monkeypatch, tmp_path):
             "SELECT role_text FROM applications WHERE id = ?", (app_id,)
         ).fetchone()
     assert row["role_text"] == "Acme SWE Intern"
+
+
+def test_add_without_resume_ref_uses_newly_set_latest(monkeypatch, tmp_path):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    database_path = bootstrap_storage()
+    resume_file = tmp_path / "resume.pdf"
+    resume_file.write_text("resume", encoding="utf-8")
+    add_resume("older", str(resume_file), database_path)
+    add_resume("newer", str(resume_file), database_path)
+    set_latest_resume("older", database_path)
+
+    app_id = add_application("Initech Backend Intern", None, database_path)
+    with connection(database_path) as conn:
+        row = conn.execute(
+            """
+            SELECT a.id, r.nickname AS resume_nickname
+            FROM applications a
+            JOIN resumes r ON r.id = a.resume_id
+            WHERE a.id = ?
+            """,
+            (app_id,),
+        ).fetchone()
+
+    assert row["id"] == app_id
+    assert row["resume_nickname"] == "older"

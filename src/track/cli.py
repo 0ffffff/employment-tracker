@@ -12,7 +12,7 @@ from track.applications import (
     update_application_status,
 )
 from track.errors import TrackError
-from track.resumes import add_resume, list_resume_rows
+from track.resumes import add_resume, list_resume_rows, set_latest_resume
 from track.storage import bootstrap_storage
 
 LIST_HEAD_ROWS = 5
@@ -22,6 +22,7 @@ _SUBCOMMAND_ALIASES: dict[str, str] = {
     "a": "add",
     "ar": "add-resume",
     "lr": "list-resume",
+    "slr": "set-latest-resume",
     "u": "update",
 }
 
@@ -146,6 +147,17 @@ def list_resume_cmd(as_json: bool, show_all: bool) -> None:
         ),
         total_noun="resumes",
     )
+
+
+@cli.command("set-latest-resume")
+@click.argument("resume_reference_name")
+def set_latest_resume_cmd(resume_reference_name: str) -> None:
+    database_path = bootstrap_storage()
+    resume_id = set_latest_resume(
+        nickname=resume_reference_name,
+        database_path=database_path,
+    )
+    click.echo(f"Set resume #{resume_id} as latest.")
 
 
 def _is_tty() -> bool:

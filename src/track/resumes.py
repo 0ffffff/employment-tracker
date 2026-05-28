@@ -79,6 +79,25 @@ def add_resume(nickname: str, source_path: str, database_path: Path) -> int:
     return resume_id
 
 
+def set_latest_resume(nickname: str, database_path: Path) -> int:
+    normalized_nickname = nickname.strip()
+    if not normalized_nickname:
+        raise ValidationError("Resume nickname cannot be empty.")
+
+    with connection(database_path) as conn:
+        target = conn.execute(
+            "SELECT id FROM resumes WHERE nickname = ? LIMIT 1", (normalized_nickname,)
+        ).fetchone()
+        if not target:
+            raise NotFoundError(f"Resume reference '{normalized_nickname}' was not found.")
+
+        target_id = int(target["id"])
+        conn.execute("UPDATE resumes SET is_latest = 0 WHERE is_latest = 1")
+        conn.execute("UPDATE resumes SET is_latest = 1 WHERE id = ?", (target_id,))
+        conn.commit()
+        return target_id
+
+
 def list_resume_rows(database_path: Path) -> list[dict]:
     with connection(database_path) as conn:
         rows = conn.execute(
