@@ -5,7 +5,7 @@ from pathlib import Path
 
 from track.confirm import choose_candidate, confirm_status_change
 from track.errors import NonInteractiveError, NotFoundError, ValidationError
-from track.fuzzy import candidate_matches
+from track.fuzzy import FUZZY_MATCH_THRESHOLD, candidate_matches
 from track.storage import connection
 
 _CANONICAL_STATUSES = ("reject", "interviewing", "offer", "accepted", "ghost")
@@ -146,10 +146,11 @@ def _resolve_application_id(
 
     rows = conn.execute("SELECT id, role_text FROM applications").fetchall()
     candidates = [{"id": int(row["id"]), "role_text": row["role_text"]} for row in rows]
-    matches = candidate_matches(stripped, candidates, threshold=85)
+    matches = candidate_matches(stripped, candidates, threshold=FUZZY_MATCH_THRESHOLD)
     if not matches:
         raise NotFoundError(
-            f"No application matched '{identifier}' with a score of at least 85."
+            f"No application matched '{identifier}' with a score of at least "
+            f"{FUZZY_MATCH_THRESHOLD}."
         )
     if len(matches) == 1:
         return int(matches[0]["id"])

@@ -19,7 +19,7 @@ Ship optional shell tab completion for `track update` using Click `shell_complet
 
 ## Problem Frame
 
-Users update application status from the terminal with long `role_text` values or numeric IDs. The product reference requires fuzzy identifier resolution (WRatio ≥ 85) and optional tab completion with native shell UX (single match fills; multiple matches list on double-Tab). v2 migrated to Click; completion was deferred during that migration. This plan finishes completion on Click’s built-in path without argcomplete or a custom completion subcommand.
+Users update application status from the terminal with long `role_text` values or numeric IDs. The product reference requires fuzzy identifier resolution (WRatio ≥ `FUZZY_MATCH_THRESHOLD`, default 85) and optional tab completion with native shell UX (single match fills; multiple matches list on double-Tab). v2 migrated to Click; completion was deferred during that migration. This plan finishes completion on Click’s built-in path without argcomplete or a custom completion subcommand.
 
 ---
 
@@ -27,7 +27,7 @@ Users update application status from the terminal with long `role_text` values o
 
 - R1. Tab on `track update`’s first positional proposes application identifier candidates from the local DB when the user has typed a non-empty partial value.
 - R2. Tab on `track update`’s second positional proposes status tokens from `STATUS_ALIASES` keys (same vocabulary as `normalize_status`).
-- R3. Non-numeric identifier completion aligns with runtime fuzzy resolution (threshold 85); completed `role_text` is accepted by `track update`.
+- R3. Non-numeric identifier completion aligns with runtime fuzzy resolution (`FUZZY_MATCH_THRESHOLD`); completed `role_text` is accepted by `track update`.
 - R4. Digit-only prefixes use v1 id semantics (`01` → `1`; partial `1` → `1`, `10`, `12`, etc.).
 - R5. Completion is read-only: no `bootstrap_storage`, no writes, no interactive prompts; missing `track.db` yields no DB-backed candidates.
 - R6. Application completion uses indexed NOCASE leading-prefix SQL prefilter, fuzzy on the subset, cap 50 after scoring, read-only SQLite URI with completion PRAGMAs.
@@ -147,7 +147,7 @@ sequenceDiagram
 1. Missing DB file → `[]`.
 2. Whitespace-only prefix → `[]`.
 3. All-digit prefix → digit id strings.
-4. Else SQL `LIKE prefix%` NOCASE (bounded row fetch) → fuzzy threshold 85 → sort → cap 50 → `role_text` strings.
+4. Else SQL `LIKE prefix%` NOCASE (bounded row fetch) → fuzzy `FUZZY_MATCH_THRESHOLD` → sort → cap 50 → `role_text` strings.
 
 ---
 

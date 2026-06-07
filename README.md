@@ -31,7 +31,7 @@ track add "Globex Data Intern" -r "2027-default"
 # Status updates
 # Update via application ID
 track update 1 interviewing
-# or by name (supports fuzzy matching)
+# or by name (supports fuzzy matching; see `FUZZY_MATCH_THRESHOLD` in `track/fuzzy.py`)
 track update "Acme SWE Intern" i -f
 
 # Lists (human: 5-row preview; --all for full table; JSON: full set)

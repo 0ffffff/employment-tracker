@@ -180,11 +180,11 @@ User input accepts **full names or single-letter shorthands**. Stored value is a
 ## Fuzzy matching (application identifier)
 
 - Library: **RapidFuzz** `process.extract` with `fuzz.WRatio`.
-- **Threshold:** score ≥ **85** or no match.
+- **Threshold:** score ≥ **`FUZZY_MATCH_THRESHOLD`** (`track/fuzzy.py`, default **85**) or no match.
 - **Multiple matches above threshold:** interactive numbered menu (TTY only); non-TTY → `NonInteractiveError` with hint to use ID.
 - **Numeric identifier:** if stripped input is all digits, resolve by ID first (validates existence).
 
-Tab completion reuses threshold 85 for role text; caps fuzzy completion candidates at **50**, sorted by score desc then id desc. Read-only DB access via `file:…?mode=ro` URI.
+Tab completion reuses `FUZZY_MATCH_THRESHOLD` for role text; caps fuzzy completion candidates at **50**, sorted by score desc then id desc. Read-only DB access via `file:…?mode=ro` URI.
 
 ---
 
@@ -213,7 +213,7 @@ Useful when porting or simplifying:
 | `track/storage.py` | SQLite connection, schema init, bootstrap |
 | `track/schema.sql` | DDL |
 | `track/paths.py` | `~/.track` paths |
-| `track/fuzzy.py` | RapidFuzz wrapper |
+| `track/fuzzy.py` | RapidFuzz wrapper; `FUZZY_MATCH_THRESHOLD` (default 85) |
 | `track/confirm.py` | Prompts, previews, candidate picker |
 | `track/completion_data.py` | Read-only completion queries |
 | `track/errors.py` | Exception types |
@@ -250,7 +250,7 @@ employment-tracker-2 should treat the **current** command set and rules above as
 ### Preserve (behavioral contract)
 
 - Local-first `~/.track/` storage model and two-table schema (or compatible evolution).
-- Command semantics and defaults listed in this doc (especially ghost default, latest resume, fuzzy threshold 85, confirmation/`-f`/non-TTY rules).
+- Command semantics and defaults listed in this doc (especially ghost default, latest resume, `FUZZY_MATCH_THRESHOLD`, confirmation/`-f`/non-TTY rules).
 - Separation of **status updates** (`update`) vs **field edits** (`edit`).
 - Deterministic successor resume rule on `remove-resume --repoint-to-latest`.
 
@@ -290,7 +290,7 @@ Avoid premature abstractions (repository interfaces, plugin systems) until a sec
 | Dependencies | `click`, `rapidfuzz` required (no optional completion extra) |
 | CLI framework | Click (`@click.group` + subcommands); entry point `track.cli:main` |
 | Subcommand aliases | `ls`→`list`, `a`→`add`, `ar`→`add-resume`, `lr`→`list-resume`, `u`→`update`; hidden from `--help` and tab completion |
-| `track update` identifier | Numeric ID or fuzzy `role_text` (threshold 85) |
+| `track update` identifier | Numeric ID or fuzzy `role_text` (`FUZZY_MATCH_THRESHOLD`) |
 | Commands not yet ported | `edit`, `delete`, `remove-resume` |
 | Corrupt DB recovery | Reimplemented: non-SQLite `track.db` is deleted and re-initialized on bootstrap |
 | Shell tab completion | Subcommand names (`install.sh`); `add-resume` path via `click.Path`; **`track update` ID/status deferred** |

@@ -2,9 +2,14 @@
 
 from rapidfuzz import fuzz, process
 
+# Minimum WRatio score (0–100) for fuzzy application identifier matches.
+FUZZY_MATCH_THRESHOLD = 85
+
 
 def candidate_matches(
-    query: str, candidates: list[dict[str, str | int]], threshold: int = 85
+    query: str,
+    candidates: list[dict[str, str | int]],
+    threshold: int = FUZZY_MATCH_THRESHOLD,
 ) -> list[dict[str, int | str | float]]:
     if not candidates:
         return []

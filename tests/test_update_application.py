@@ -1,6 +1,7 @@
 import pytest
 
 from track.applications import add_application, update_application_status
+from track.fuzzy import FUZZY_MATCH_THRESHOLD
 from track.errors import NonInteractiveError, NotFoundError
 from track.resumes import add_resume
 from track.storage import bootstrap_storage, connection
@@ -101,7 +102,9 @@ def test_exact_role_text_skips_fuzzy_disambiguation(monkeypatch, tmp_path):
 def test_fuzzy_no_match_raises_not_found(monkeypatch, tmp_path):
     database_path, _app_id = _seed(monkeypatch, tmp_path)
 
-    with pytest.raises(NotFoundError, match="score of at least 85"):
+    with pytest.raises(
+        NotFoundError, match=f"score of at least {FUZZY_MATCH_THRESHOLD}"
+    ):
         update_application_status(
             identifier="Totally Unrelated Corp",
             raw_status="i",
