@@ -54,14 +54,16 @@ def add_application(role_text: str, resume_ref: str | None, database_path: Path)
             (normalized_role, resume_id, date.today().isoformat(), "ghost"),
         )
         conn.commit()
-        return int(cursor.lastrowid)
+        return int(cursor.lastrowid or 0)
 
 
 def _parse_applied_date(label: str, raw: str) -> str:
     try:
         return date.fromisoformat(raw.strip()).isoformat()
     except ValueError as exc:
-        raise ValidationError(f"{label} must be a valid date in YYYY-MM-DD format.") from exc
+        raise ValidationError(
+            f"{label} must be a valid date in YYYY-MM-DD format."
+        ) from exc
 
 
 def list_application_rows(
