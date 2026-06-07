@@ -9,7 +9,7 @@ If you don't have `uv` installed, this script will also install that for you.
 curl -fsSL https://0ffffff.github.io/install.sh | bash
 ```
 
-Your data lives locally in `~/.track/`, created automatically from installation. If there's a new update, just rerun the install script; your current data will be saved.
+Your data lives locally in `~/.track/`, created automatically from installation. The applications are stored in a SQLite database, while your resumes are copied from the path you provide as reference when running `track add-resume`. If there's a new update, just rerun the install script; your current data will be saved.
 
 ## Usage
 

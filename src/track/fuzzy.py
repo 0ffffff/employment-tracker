@@ -1,4 +1,4 @@
-"""Fuzzy role_text matching for application identifiers (RapidFuzz WRatio)."""
+"""Fuzzy role_text matching for application identifiers using RapidFuzz WRatio."""
 
 from rapidfuzz import fuzz, process
 
