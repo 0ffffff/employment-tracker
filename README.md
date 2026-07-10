@@ -58,5 +58,6 @@ You can also use subcommand aliases:
 - [ ] delete resume functionality
 - [ ] delete applications functionality
 - [ ] various QoL improvements
+- [ ] colored output
 - [ ] data analytics (e.g. view your application/job stats)
 - [ ] export data to csv, json, etc.
