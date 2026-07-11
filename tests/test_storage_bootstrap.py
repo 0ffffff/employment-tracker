@@ -1,9 +1,9 @@
 from track.paths import db_path, resumes_dir, track_home
-from track.storage import bootstrap_storage
+from track.resumes import add_resume
+from track.storage import bootstrap_storage, connection
 
 
-def test_first_run_bootstrap_creates_directories_and_db(monkeypatch, tmp_path):
-    monkeypatch.setenv("HOME", str(tmp_path))
+def test_first_run_bootstrap_creates_directories_and_db(isolated_home):
     created_db = bootstrap_storage()
     assert created_db == db_path()
     assert track_home().exists()
@@ -11,8 +11,17 @@ def test_first_run_bootstrap_creates_directories_and_db(monkeypatch, tmp_path):
     assert created_db.exists()
 
 
-def test_bootstrap_recovers_from_corrupted_file(monkeypatch, tmp_path):
-    monkeypatch.setenv("HOME", str(tmp_path))
+def test_bootstrap_skips_schema_when_already_initialized(database_path, resume_file):
+    add_resume("base", str(resume_file), database_path)
+
+    bootstrap_storage()
+
+    with connection(database_path) as conn:
+        count = conn.execute("SELECT COUNT(*) AS c FROM resumes").fetchone()["c"]
+    assert count == 1
+
+
+def test_bootstrap_recovers_from_corrupted_file(isolated_home):
     db = db_path()
     track_home().mkdir(parents=True, exist_ok=True)
     db.write_text("NOT A DATABASE", encoding="utf-8")

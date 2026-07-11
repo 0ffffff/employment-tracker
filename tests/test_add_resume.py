@@ -5,21 +5,12 @@ import pytest
 from track.errors import NotFoundError, ValidationError
 from track.paths import resumes_dir
 from track.resumes import add_resume, set_latest_resume
-from track.storage import bootstrap_storage, connection
+from track.storage import connection
 
 
-def _write_resume(path: Path, text: str = "resume") -> Path:
-    path.write_text(text, encoding="utf-8")
-    return path
-
-
-def test_add_resume_persists_record_and_updates_latest(monkeypatch, tmp_path):
-    monkeypatch.setenv("HOME", str(tmp_path))
-    database_path = bootstrap_storage()
-    source = _write_resume(tmp_path / "resume.pdf")
-
-    first_id = add_resume("base", str(source), database_path)
-    second_id = add_resume("tailored", str(source), database_path)
+def test_add_resume_persists_record_and_updates_latest(database_path, resume_file):
+    first_id = add_resume("base", str(resume_file), database_path)
+    second_id = add_resume("tailored", str(resume_file), database_path)
 
     with connection(database_path) as conn:
         latest = conn.execute(
@@ -32,34 +23,25 @@ def test_add_resume_persists_record_and_updates_latest(monkeypatch, tmp_path):
     assert first_id != second_id
 
 
-def test_duplicate_resume_nickname_fails(monkeypatch, tmp_path):
-    monkeypatch.setenv("HOME", str(tmp_path))
-    database_path = bootstrap_storage()
-    source = _write_resume(tmp_path / "resume.pdf")
-    add_resume("base", str(source), database_path)
+def test_duplicate_resume_nickname_fails(database_path, resume_file):
+    add_resume("base", str(resume_file), database_path)
 
     with pytest.raises(ValidationError):
-        add_resume("base", str(source), database_path)
+        add_resume("base", str(resume_file), database_path)
 
 
-def test_missing_resume_file_fails_without_db_side_effects(monkeypatch, tmp_path):
-    monkeypatch.setenv("HOME", str(tmp_path))
-    database_path = bootstrap_storage()
-
+def test_missing_resume_file_fails_without_db_side_effects(database_path, isolated_home):
     with pytest.raises(NotFoundError):
-        add_resume("missing", str(tmp_path / "does-not-exist.pdf"), database_path)
+        add_resume("missing", str(isolated_home / "does-not-exist.pdf"), database_path)
 
     with connection(database_path) as conn:
         count = conn.execute("SELECT COUNT(*) AS c FROM resumes").fetchone()["c"]
     assert count == 0
 
 
-def test_set_latest_resume_switches_latest(monkeypatch, tmp_path):
-    monkeypatch.setenv("HOME", str(tmp_path))
-    database_path = bootstrap_storage()
-    source = _write_resume(tmp_path / "resume.pdf")
-    first_id = add_resume("first", str(source), database_path)
-    second_id = add_resume("second", str(source), database_path)
+def test_set_latest_resume_switches_latest(database_path, resume_file):
+    first_id = add_resume("first", str(resume_file), database_path)
+    second_id = add_resume("second", str(resume_file), database_path)
 
     latest_id = set_latest_resume("first", database_path)
 
@@ -77,11 +59,8 @@ def test_set_latest_resume_switches_latest(monkeypatch, tmp_path):
     assert latest_count == 1
 
 
-def test_set_latest_resume_allows_idempotent_repeat(monkeypatch, tmp_path):
-    monkeypatch.setenv("HOME", str(tmp_path))
-    database_path = bootstrap_storage()
-    source = _write_resume(tmp_path / "resume.pdf")
-    latest_id = add_resume("base", str(source), database_path)
+def test_set_latest_resume_allows_idempotent_repeat(database_path, resume_file):
+    latest_id = add_resume("base", str(resume_file), database_path)
 
     returned_id = set_latest_resume("base", database_path)
 
@@ -97,11 +76,8 @@ def test_set_latest_resume_allows_idempotent_repeat(monkeypatch, tmp_path):
     assert latest["id"] == latest_id
 
 
-def test_set_latest_resume_missing_name_fails_without_mutation(monkeypatch, tmp_path):
-    monkeypatch.setenv("HOME", str(tmp_path))
-    database_path = bootstrap_storage()
-    source = _write_resume(tmp_path / "resume.pdf")
-    add_resume("base", str(source), database_path)
+def test_set_latest_resume_missing_name_fails_without_mutation(database_path, resume_file):
+    add_resume("base", str(resume_file), database_path)
 
     with pytest.raises(NotFoundError):
         set_latest_resume("missing", database_path)

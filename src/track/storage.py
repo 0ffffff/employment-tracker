@@ -20,13 +20,21 @@ def init_db(conn: sqlite3.Connection) -> None:
     conn.commit()
 
 
+def _schema_initialized(conn: sqlite3.Connection) -> bool:
+    row = conn.execute(
+        "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'applications' LIMIT 1"
+    ).fetchone()
+    return row is not None
+
+
 def bootstrap_storage(database_path: Path | None = None) -> Path:
     ensure_track_dirs()
     path = database_path or db_path()
     path.parent.mkdir(parents=True, exist_ok=True)
     try:
         with connection(path) as conn:
-            init_db(conn)
+            if not _schema_initialized(conn):
+                init_db(conn)
     except sqlite3.DatabaseError as exc:
         if "file is not a database" not in str(exc):
             raise

@@ -121,6 +121,37 @@ def normalize_status(status: str) -> str:
     return canonical
 
 
+def _escape_like(value: str) -> str:
+    return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
+def _application_role_candidates(conn) -> list[dict[str, int | str]]:
+    rows = conn.execute("SELECT id, role_text FROM applications").fetchall()
+    return [{"id": int(row["id"]), "role_text": row["role_text"]} for row in rows]
+
+
+def _prefix_application_role_candidates(conn, query: str) -> list[dict[str, int | str]]:
+    escaped = _escape_like(query.strip())
+    rows = conn.execute(
+        """
+        SELECT id, role_text FROM applications
+        WHERE role_text LIKE ? ESCAPE '\\' COLLATE NOCASE
+        """,
+        (f"{escaped}%",),
+    ).fetchall()
+    return [{"id": int(row["id"]), "role_text": row["role_text"]} for row in rows]
+
+
+def _fuzzy_application_matches(conn, query: str, threshold: int) -> list[dict[str, int | str | float]]:
+    prefix_candidates = _prefix_application_role_candidates(conn, query)
+    matches = candidate_matches(query, prefix_candidates, threshold=threshold)
+    if matches:
+        return matches
+    return candidate_matches(
+        query, _application_role_candidates(conn), threshold=threshold
+    )
+
+
 def _get_application_by_id(conn, application_id: int):
     row = conn.execute(
         "SELECT id, role_text, status FROM applications WHERE id = ? LIMIT 1",
@@ -144,9 +175,7 @@ def _resolve_application_id(
         _get_application_by_id(conn, application_id)
         return application_id
 
-    rows = conn.execute("SELECT id, role_text FROM applications").fetchall()
-    candidates = [{"id": int(row["id"]), "role_text": row["role_text"]} for row in rows]
-    matches = candidate_matches(stripped, candidates, threshold=FUZZY_MATCH_THRESHOLD)
+    matches = _fuzzy_application_matches(conn, stripped, FUZZY_MATCH_THRESHOLD)
     if not matches:
         raise NotFoundError(
             f"No application matched '{identifier}' with a score of at least "
