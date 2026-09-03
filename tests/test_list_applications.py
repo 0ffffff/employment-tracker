@@ -104,6 +104,16 @@ def test_list_query_tolerates_typos(database_path, seed_resume):
     assert "Meta SWE Intern" not in roles
 
 
+def test_list_query_does_not_treat_intel_as_intern(database_path, seed_resume):
+    _seed_search_roles(database_path, seed_resume)
+    add_application("Intel SWE Intern", "base", database_path)
+    roles = [
+        row["role_text"]
+        for row in list_application_rows(database_path, role_query="intel")
+    ]
+    assert roles == ["Intel SWE Intern"]
+
+
 def test_list_query_with_status_filter(database_path, seed_resume):
     _seed_search_roles(database_path, seed_resume)
     with connection(database_path) as conn:

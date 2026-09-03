@@ -1,11 +1,13 @@
 """Fuzzy role_text matching for application identifiers using RapidFuzz WRatio."""
 
+import re
+
 from rapidfuzz import fuzz, process
 
 # Minimum WRatio score (0–100) for fuzzy application identifier matches.
 FUZZY_MATCH_THRESHOLD = 85
-# Looser cutoff for `track list <query>` ranked search (not resolve-to-one).
-LIST_MATCH_THRESHOLD = 60
+# Token-level ratio cutoff for `track list <query>`.
+LIST_MATCH_THRESHOLD = 80
 
 
 def candidate_matches(
@@ -50,14 +52,19 @@ def ranked_role_matches(
     candidates: list[dict],
     threshold: int = LIST_MATCH_THRESHOLD,
 ) -> list[dict]:
-    """Score every candidate; return those at or above threshold, unsorted."""
-    stripped = query.strip().lower()
-    if not stripped or not candidates:
+    q_tokens = re.findall(r"[a-z0-9]+", query.lower())
+    if not q_tokens:
         return []
 
     matches: list[dict] = []
     for candidate in candidates:
-        score = float(fuzz.WRatio(stripped, str(candidate["role_text"]).lower()))
-        if score >= threshold:
-            matches.append({**candidate, "score": score})
+        r_tokens = re.findall(r"[a-z0-9]+", str(candidate["role_text"]).lower())
+        if not r_tokens:
+            continue
+        scores = [
+            max(100 if len(q) >= 3 and t.startswith(q) else fuzz.ratio(q, t) for t in r_tokens)
+            for q in q_tokens
+        ]
+        if min(scores) >= threshold:
+            matches.append({**candidate, "score": sum(scores) / len(scores)})
     return matches
