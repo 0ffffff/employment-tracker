@@ -118,3 +118,32 @@ def test_fuzzy_no_match_raises_not_found(seeded_application):
             force=True,
             is_tty=False,
         )
+
+
+def test_update_identifier_is_case_insensitive(seeded_application):
+    database_path, app_id = seeded_application
+
+    updated_id, status = update_application_status(
+        identifier="ACME SWE",
+        raw_status="i",
+        database_path=database_path,
+        force=True,
+        is_tty=False,
+    )
+    assert updated_id == app_id
+    assert status == "interviewing"
+
+
+def test_case_variant_duplicate_roles_require_disambiguation(database_path, seed_resume):
+    seed_resume()
+    add_application("Acme SWE Intern", "base", database_path)
+    add_application("ACME SWE INTERN", "base", database_path)
+
+    with pytest.raises(NonInteractiveError):
+        update_application_status(
+            identifier="acme swe intern",
+            raw_status="i",
+            database_path=database_path,
+            force=True,
+            is_tty=False,
+        )

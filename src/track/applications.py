@@ -5,7 +5,12 @@ from pathlib import Path
 
 from track.confirm import choose_candidate, confirm_status_change
 from track.errors import NonInteractiveError, NotFoundError, ValidationError
-from track.fuzzy import FUZZY_MATCH_THRESHOLD, candidate_matches
+from track.fuzzy import (
+    FUZZY_MATCH_THRESHOLD,
+    LIST_MATCH_THRESHOLD,
+    candidate_matches,
+    ranked_role_matches,
+)
 from track.storage import connection
 
 _CANONICAL_STATUSES = ("reject", "interviewing", "offer", "accepted", "ghost")
@@ -72,6 +77,7 @@ def list_application_rows(
     status_filter: str | None = None,
     applied_from: str | None = None,
     applied_to: str | None = None,
+    role_query: str | None = None,
 ) -> list[dict]:
     query = """
         SELECT
@@ -99,7 +105,7 @@ def list_application_rows(
     with connection(database_path) as conn:
         rows = conn.execute(query, params).fetchall()
 
-    return [
+    mapped = [
         {
             "id": int(row["id"]),
             "role_text": row["role_text"],
@@ -109,6 +115,15 @@ def list_application_rows(
         }
         for row in rows
     ]
+    if role_query is None or not role_query.strip():
+        return mapped
+
+    ranked = ranked_role_matches(role_query, mapped, threshold=LIST_MATCH_THRESHOLD)
+    ranked.sort(
+        key=lambda row: (float(row["score"]), row["applied_date"], int(row["id"])),
+        reverse=True,
+    )
+    return [{k: v for k, v in row.items() if k != "score"} for row in ranked]
 
 
 def normalize_status(status: str) -> str:

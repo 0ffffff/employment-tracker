@@ -91,12 +91,14 @@ def update_cmd(identifier: str, status_or_option: str, force: bool) -> None:
 
 
 @cli.command("list")
+@click.argument("query", required=False, default=None)
 @click.option("--json", "as_json", is_flag=True, help="Emit machine-readable JSON.")
 @click.option("--status", "status_filter", default=None, help="Filter by status token.")
 @click.option("--applied-from", default=None, help="Lower bound applied_date (YYYY-MM-DD).")
 @click.option("--applied-to", default=None, help="Upper bound applied_date (YYYY-MM-DD).")
 @click.option("--all", "show_all", is_flag=True, help="Show all rows (default: preview).")
 def list_cmd(
+    query: str | None,
     as_json: bool,
     status_filter: str | None,
     applied_from: str | None,
@@ -109,14 +111,20 @@ def list_cmd(
         status_filter=status_filter,
         applied_from=applied_from,
         applied_to=applied_to,
+        role_query=query,
     )
     if as_json:
         click.echo(json.dumps({"format_version": 1, "applications": rows}, sort_keys=True))
         return
+    empty = (
+        f"No applications matching '{query.strip()}'."
+        if query is not None and query.strip()
+        else "No applications found."
+    )
     _print_preview_table(
         rows,
         show_all=show_all,
-        empty="No applications found.",
+        empty=empty,
         header=f"{'ID':<6} {'Applied':<12} {'Status':<14} {'Resume':<16} Role",
         format_row=lambda row: (
             f"{int(row['id']):<6} {row['applied_date']:<12} {row['status']:<14} "
