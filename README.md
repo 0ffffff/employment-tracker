@@ -37,6 +37,7 @@ track update "Acme SWE Intern" i -f
 # Lists (human: 5-row preview; --all for full table; JSON: full set)
 track list
 track list google
+track ls google swe
 track list --json --status i
 track list-resume --json --all
 ```

@@ -150,3 +150,11 @@ def test_main_list_query_json_and_alias(database_path, seed_resume, capsys):
     roles = {row["role_text"] for row in payload["applications"]}
     assert "Google SWE Intern" in roles
     assert "Acme SWE Intern" not in roles
+
+
+def test_main_list_joins_multi_word_query(database_path, seed_resume, capsys):
+    _seed_search_roles(database_path, seed_resume)
+    assert main(["ls", "google", "swe", "--json"]) == 0
+    payload = json.loads(capsys.readouterr().out.strip())
+    roles = {row["role_text"] for row in payload["applications"]}
+    assert roles == {"Google SWE Intern"}

@@ -91,34 +91,35 @@ def update_cmd(identifier: str, status_or_option: str, force: bool) -> None:
 
 
 @cli.command("list")
-@click.argument("query", required=False, default=None)
+@click.argument("role_query", nargs=-1, metavar="[QUERY]...")
 @click.option("--json", "as_json", is_flag=True, help="Emit machine-readable JSON.")
 @click.option("--status", "status_filter", default=None, help="Filter by status token.")
 @click.option("--applied-from", default=None, help="Lower bound applied_date (YYYY-MM-DD).")
 @click.option("--applied-to", default=None, help="Upper bound applied_date (YYYY-MM-DD).")
 @click.option("--all", "show_all", is_flag=True, help="Show all rows (default: preview).")
 def list_cmd(
-    query: str | None,
+    role_query: tuple[str, ...],
     as_json: bool,
     status_filter: str | None,
     applied_from: str | None,
     applied_to: str | None,
     show_all: bool,
 ) -> None:
+    role_query = " ".join(role_query).strip() or None
     database_path = bootstrap_storage()
     rows = list_application_rows(
         database_path,
         status_filter=status_filter,
         applied_from=applied_from,
         applied_to=applied_to,
-        role_query=query,
+        role_query=role_query,
     )
     if as_json:
         click.echo(json.dumps({"format_version": 1, "applications": rows}, sort_keys=True))
         return
     empty = (
-        f"No applications matching '{query.strip()}'."
-        if query is not None and query.strip()
+        f"No applications matching '{role_query}'."
+        if role_query is not None
         else "No applications found."
     )
     _print_preview_table(
